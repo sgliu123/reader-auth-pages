@@ -1,0 +1,6 @@
+name = "reader-auth-pages"
+compatibility_date = "2026-06-13"
+
+[[kv_namespaces]]
+binding = "AUTH_KV"
+id = "你的_AUTH_KV_ID"
