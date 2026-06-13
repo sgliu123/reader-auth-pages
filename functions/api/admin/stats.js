@@ -1,4 +1,25 @@
-// 获取统计信息
+// CORS 头配置
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400',
+};
+
+// 为响应添加 CORS 头
+function addCors(response) {
+  Object.entries(corsHeaders).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+  return response;
+}
+
+// 处理 OPTIONS 预检请求
+export async function onRequestOptions(context) {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
+
+// 获取统计信息 - 适配 AUTH_KV 格式
 export async function onRequestGet(context) {
   const { env } = context;
 
@@ -12,7 +33,7 @@ export async function onRequestGet(context) {
     });
   }
 
-  return new Response(JSON.stringify({
+  return addCors(new Response(JSON.stringify({
     success: true,
     data: {
       totalKeys: keys.length,
@@ -22,5 +43,5 @@ export async function onRequestGet(context) {
     }
   }), {
     headers: { 'Content-Type': 'application/json' },
-  });
+  }));
 }
