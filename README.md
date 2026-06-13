@@ -1,6 +1,6 @@
 # reader-auth-pages
 
-基于 Cloudflare Pages Functions 的 API 服务，替代 Workers 部署，国内访问更稳定。
+基于 Cloudflare Pages Functions 的 API 服务，替代 Workers 部署，国内访问更稳定  。
 
 ## 部署步骤
 
