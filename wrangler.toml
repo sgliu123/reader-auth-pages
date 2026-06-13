@@ -1,6 +1,8 @@
-name = "reader-auth-pages"
-compatibility_date = "2026-06-13"
+name = "reader-auth-api"
+compatibility_date = "2024-01-01"
 
+# KV 命名空间绑定 (已创建: LICENSE_KV, ID: c909ee536beb4d13aded0242c78e27a2)
 [[kv_namespaces]]
-binding = "AUTH_KV"
-id = "180674fdf4264fa6b44488f1e1ddeeb8"
+binding = "LICENSE_KV"
+id = "c909ee536beb4d13aded0242c78e27a2"
+preview_id = "c909ee536beb4d13aded0242c78e27a2"
