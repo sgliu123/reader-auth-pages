@@ -976,6 +976,7 @@ body { margin:0; font-family: "Noto Sans SC", "Source Han Sans", "PingFang SC", 
   color: #888;
 }
 </style>
+<base target="_blank">
 </head>
 
 <body>
@@ -4131,7 +4132,7 @@ const AuthManager = {
     showStatus(text, type) {
       const status = document.getElementById('authStatus');
       if (status) {
-        status.textContent = text;
+        status.innerHTML = text.replace(/\n/g, '<br>');
         status.className = 'auth-status ' + type;
       }
     },
@@ -4249,11 +4250,20 @@ const AuthManager = {
         setTimeout(() => { document.getElementById('activateModal')?.remove(); location.reload(); }, 1500);
       } else {
         // 显示具体错误，包括设备绑定冲突
-        let errorMsg = '❌ ' + result.error;
-        if (result.deviceMismatch || result.error.includes('已被其他设备')) {
-          errorMsg += '\n\n💡 如需帮助，请联系管理员：\n微信号：sgliu02（快乐阅读）';
+        let errorMsg = result.error || '激活失败';
+
+        // 使用 alert 显示错误，确保用户能看到
+        if (result.deviceMismatch || (result.error && result.error.includes('已被其他设备'))) {
+          alert('❌ ' + errorMsg + '\n\n💡 如需帮助，请联系管理员：\n微信号：sgliu02（微信名：快乐阅读）');
+        } else if (result.error && result.error.includes('不存在')) {
+          alert('❌ ' + errorMsg + '\n\n请检查授权码是否正确，或联系管理员获取。\n微信号：sgliu02（微信名：快乐阅读）');
+        } else if (result.error && result.error.includes('过期')) {
+          alert('❌ ' + errorMsg + '\n\n您的授权码已过期，请联系管理员续期。\n微信号：sgliu02（微信名：快乐阅读）');
+        } else {
+          alert('❌ ' + errorMsg + '\n\n请稍后重试，或联系管理员。\n微信号：sgliu02（微信名：快乐阅读）');
         }
-        AuthUI.showStatus(errorMsg, 'error');
+
+        AuthUI.showStatus('❌ ' + errorMsg, 'error');
       }
     },
     deactivate() {
