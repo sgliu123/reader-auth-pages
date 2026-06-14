@@ -1,4 +1,3 @@
-// CORS 头配置
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -22,16 +21,33 @@ export async function onRequestGet(context) {
 
   const keys = [];
   const list = await env.AUTH_KV.list();
-  
-  for (const key of list.keys) {
-    const value = await env.AUTH_KV.get(key.name);
+
+  for (const item of list.keys) {
+    const value = await env.AUTH_KV.get(item.name);
     if (value) {
-      keys.push(JSON.parse(value));
+      const data = JSON.parse(value);
+
+      // 兼容旧数据格式
+      if (data.createdAt && !data.key) {
+        // 这是旧格式数据，转换为新格式
+        keys.push({
+          key: item.name,
+          type: '30',
+          status: data.used ? 'active' : 'unused',
+          deviceId: null,
+          activatedAt: data.usedAt,
+          expiresAt: item.expiration || null,
+          createdAt: data.createdAt
+        });
+      } else {
+        // 新格式数据
+        keys.push(data);
+      }
     }
   }
 
   return addCors(new Response(JSON.stringify({
-    keys: keys  // 直接返回 keys，不要嵌套 data
+    keys: keys
   }), {
     headers: { 'Content-Type': 'application/json' },
   }));
