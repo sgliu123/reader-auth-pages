@@ -41,8 +41,10 @@ export async function onRequestPost(context) {
   const keyData = JSON.parse(value);
 
   if (action === 'unbind') {
+    // 解除绑定：清除 deviceId 和 activatedAt，恢复为未使用状态
     keyData.deviceId = null;
-    keyData.status = 'active';
+    keyData.activatedAt = null;
+    keyData.status = 'unused';  // 恢复为未使用状态
   } else {
     // bind — 绑定设备
     // 检查是否已被其他设备绑定
