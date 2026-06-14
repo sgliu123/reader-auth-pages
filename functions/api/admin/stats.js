@@ -6,7 +6,6 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
-// 为响应添加 CORS 头
 function addCors(response) {
   Object.entries(corsHeaders).forEach(([key, value]) => {
     response.headers.set(key, value);
@@ -14,33 +13,29 @@ function addCors(response) {
   return response;
 }
 
-// 处理 OPTIONS 预检请求
 export async function onRequestOptions(context) {
   return new Response(null, { status: 204, headers: corsHeaders });
 }
 
-// 获取统计信息 - 适配 AUTH_KV 格式
 export async function onRequestGet(context) {
   const { env } = context;
 
-  const keys = [];
   const list = await env.AUTH_KV.list();
+  let total = 0, active = 0, bound = 0, unused = 0;
+
   for (const key of list.keys) {
-    keys.push({
-      name: key.name,
-      expiration: key.expiration,
-      metadata: key.metadata,
-    });
+    const value = await env.AUTH_KV.get(key.name);
+    if (value) {
+      const keyData = JSON.parse(value);
+      total++;
+      if (keyData.status === 'active') active++;
+      if (keyData.deviceId) bound++;
+      else unused++;
+    }
   }
 
   return addCors(new Response(JSON.stringify({
-    success: true,
-    data: {
-      totalKeys: keys.length,
-      activeKeys: keys.filter(k => !k.expiration || k.expiration > Date.now()).length,
-      expiredKeys: keys.filter(k => k.expiration && k.expiration <= Date.now()).length,
-      timestamp: new Date().toISOString(),
-    }
+    total, active, bound, unused  // 直接返回，不要嵌套 data
   }), {
     headers: { 'Content-Type': 'application/json' },
   }));
