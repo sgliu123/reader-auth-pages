@@ -1,49 +1,61 @@
-// 使用密钥
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400',
+};
+
+function addCors(response) {
+  Object.entries(corsHeaders).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+  return response;
+}
+
+export async function onRequestOptions(context) {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
+
 export async function onRequestPost(context) {
   const { env, request } = context;
-
   const body = await request.json().catch(() => ({}));
-  const key = body.key;
+  const licenseKey = body.licenseKey;
+  const action = body.action; // 'bind' 或 'unbind'
+  const deviceId = body.deviceId;
 
-  if (!key) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: 'Key is required'
-    }), {
+  if (!licenseKey) {
+    return addCors(new Response(JSON.stringify({ error: '缺少授权码' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
-    });
+    }));
   }
 
-  const value = await env.AUTH_KV.get(key);
+  const value = await env.AUTH_KV.get(licenseKey);
   if (!value) {
-    return new Response(JSON.stringify({
-      success: false,
-      error: 'Key not found'
-    }), {
+    return addCors(new Response(JSON.stringify({ error: '授权码不存在' }), {
       status: 404,
       headers: { 'Content-Type': 'application/json' },
-    });
+    }));
   }
 
   const keyData = JSON.parse(value);
-  if (keyData.used) {
-    return new Response(JSON.stringify({
-      success: true,
-      data: { valid: false, reason: 'Key already used' }
-    }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+
+  if (action === 'unbind') {
+    keyData.deviceId = null;
+    keyData.status = 'active';
+  } else {
+    // bind
+    keyData.deviceId = deviceId;
+    keyData.status = 'active';
+    keyData.activatedAt = Date.now();
   }
 
-  keyData.used = true;
-  keyData.usedAt = new Date().toISOString();
-  await env.AUTH_KV.put(key, JSON.stringify(keyData));
+  await env.AUTH_KV.put(licenseKey, JSON.stringify(keyData));
 
-  return new Response(JSON.stringify({
+  return addCors(new Response(JSON.stringify({
     success: true,
-    data: { valid: true }
+    key: keyData
   }), {
     headers: { 'Content-Type': 'application/json' },
-  });
+  }));
 }
