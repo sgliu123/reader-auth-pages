@@ -60,7 +60,8 @@ export async function onRequestPost(context) {
     return addCors(new Response(JSON.stringify({
       valid: false,
       error: '该授权码已绑定其他设备',
-      deviceMismatch: true
+      deviceMismatch: true,
+      boundDevice: keyData.deviceId.substring(0, 12) + '...'
     }), {
       headers: { 'Content-Type': 'application/json' },
     }));
