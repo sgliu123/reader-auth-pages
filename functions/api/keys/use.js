@@ -44,7 +44,19 @@ export async function onRequestPost(context) {
     keyData.deviceId = null;
     keyData.status = 'active';
   } else {
-    // bind
+    // bind — 绑定设备
+    // 检查是否已被其他设备绑定
+    if (keyData.deviceId && keyData.deviceId !== deviceId) {
+      return addCors(new Response(JSON.stringify({
+        success: false,
+        error: '该授权码已被其他设备绑定',
+        boundDevice: keyData.deviceId.substring(0, 12) + '...'
+      }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      }));
+    }
+
     keyData.deviceId = deviceId;
     keyData.status = 'active';
     keyData.activatedAt = Date.now();
